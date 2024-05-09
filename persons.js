@@ -1,5 +1,14 @@
-const express = require('express')
+const express = require('express');
+const morgan = require('morgan');
 const app = express()
+
+// module.exports = morgan
+// module.exports.compile = compile
+// module.exports.format = format
+// module.exports.token = token
+
+// let debug = require('debug')('morgan')
+// let deprecate = require('depd')('morgan')
 
 let persons = [
     { 
@@ -24,14 +33,76 @@ let persons = [
     }
 ];
 
+// const requestLogger = (request, response, next) => {
+//   console.log('Method:', request.method);
+//   // console.log('Status: ', response);
+//   // console.log('Time: ', request);
+//   console.log('Path:  ', request.path);
+//   console.log('Body:  ', request.body);
+//   console.log('----------');
+//   next();
+// };
+
+//app.use(headersSent)
 app.use(express.json());
+app.use(morgan(':method :url :status :res[content-length] - :response-time ms :req[content-length]'));
+
+morgan.token('url', function getUrlToken (req) {
+  return req.url;
+});
+
+morgan.token('method', function getMethodToken (req) {
+  return req.method;
+});
+
+morgan.token('status', function getStatusToken (req, res) {
+  return headersSent(res)
+    ? String(res.statusCode)
+    : undefined
+})
+
+morgan.token('res', function getResponseHeader (req, res, field) {
+  if (!headersSent(res)) {
+    return undefined;
+  };
+
+  let header = res.getHeader(field);
+
+  return Array.isArray(header)
+    ? header.join(', ')
+    : header
+});
+
+morgan.token('response-time', function getResponseTimeToken (req, res, digits) {
+  if (!req._startAt || !res._startAt) {
+    return;
+  };
+
+  let ms = (res._startAt[0] - req._startAt[0]) * 1e3 +
+    (res._startAt[1] - req._startAt[1]) * 1e-6;
+  return ms.toFixed(digits === undefined ? 3 : digits);
+});
+
+morgan.token('req', function getRequestToken (req) {
+  return JSON.stringify(req.body);
+});
+
+function headersSent (res) {
+  return typeof res.headersSent !== 'boolean'
+    ? Boolean(res.header)
+    : res.headersSent
+};
+
+const unknownEndpoint = (request, response) => {
+  response.status(404).send({ error: 'Endpoint desconocido' });
+};
 
 app.get('/', (request, response) => {
-  response.send('<h1>Hello World!</h1>')
+  response.send('<h1>Hello World!</h1>');
 });
 
 app.get('/api/persons', (request, response) => {
-  response.json(persons)
+  response.json(persons);
 });
 
 const generateId = () => {
@@ -94,6 +165,8 @@ app.delete('/api/persons/:id', (request, response) => {
 
   response.status(204).end()
 });
+
+app.use(unknownEndpoint);
 
 const PORT = 3001;
 app.listen(PORT, () => {
