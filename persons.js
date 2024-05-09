@@ -2,14 +2,6 @@ const express = require('express');
 const morgan = require('morgan');
 const app = express()
 
-// module.exports = morgan
-// module.exports.compile = compile
-// module.exports.format = format
-// module.exports.token = token
-
-// let debug = require('debug')('morgan')
-// let deprecate = require('depd')('morgan')
-
 let persons = [
     { 
       "id": 1,
@@ -33,17 +25,6 @@ let persons = [
     }
 ];
 
-// const requestLogger = (request, response, next) => {
-//   console.log('Method:', request.method);
-//   // console.log('Status: ', response);
-//   // console.log('Time: ', request);
-//   console.log('Path:  ', request.path);
-//   console.log('Body:  ', request.body);
-//   console.log('----------');
-//   next();
-// };
-
-//app.use(headersSent)
 app.use(express.json());
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :req[content-length]'));
 
