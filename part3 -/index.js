@@ -1,32 +1,52 @@
 const express = require('express');
 const morgan = require('morgan');
+const cors = require('cors');
 const app = express()
 
-let persons = [
-    { 
-      "id": 1,
-      "name": "Arto Hellas", 
-      "number": "040-123456"
-    },
-    { 
-      "id": 2,
-      "name": "Ada Lovelace", 
-      "number": "39-44-5323523"
-    },
-    { 
-      "id": 3,
-      "name": "Dan Abramov", 
-      "number": "12-43-234345"
-    },
-    { 
-      "id": 4,
-      "name": "Mary Poppendieck", 
-      "number": "39-23-6423122"
-    }
-];
+// let persons = [
+//     { 
+//       "id": 1,
+//       "name": "Arto Hellas", 
+//       "number": "040-123456"
+//     },
+//     { 
+//       "id": 2,
+//       "name": "Ada Lovelace", 
+//       "number": "39-44-5323523"
+//     },
+//     { 
+//       "id": 3,
+//       "name": "Dan Abramov", 
+//       "number": "12-43-234345"
+//     },
+//     { 
+//       "id": 4,
+//       "name": "Mary Poppendieck", 
+//       "number": "39-23-6423122"
+//     }
+// ];
+
+let notes = [
+  {
+    id: 1,
+    content: "HTML is easy",
+    important: true
+  },
+  {
+    id: 2,
+    content: "Browser can execute only JavaScript",
+    important: false
+  },
+  {
+    id: 3,
+    content: "GET and POST are the most important methods of HTTP protocol",
+    important: true
+  }
+]
 
 app.use(express.json());
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :req[content-length]'));
+app.use(cors());
 
 morgan.token('url', function getUrlToken (req) {
   return req.url;
@@ -82,18 +102,18 @@ app.get('/', (request, response) => {
   response.send('<h1>Hello World!</h1>');
 });
 
-app.get('/api/persons', (request, response) => {
-  response.json(persons);
+app.get('/api/notes', (request, response) => {
+  response.json(notes);
 });
 
 const generateId = () => {
-  const maxId = persons.length > 0
-    ? Math.random(...persons.map(n => n.id)).toFixed(2)*(100)
+  const maxId = notes.length > 0
+    ? Math.random(...notes.map(n => n.id)).toFixed(2)*(100)
     : 0
   return maxId + 1
 };
 
-app.post('/api/persons', (request, response) => {
+app.post('/api/notes', (request, response) => {
   const body = request.body;
 
   if (!body.name || !body.number) {
@@ -102,7 +122,7 @@ app.post('/api/persons', (request, response) => {
     });
   };
 
-  const duplicado = persons.find(person => person.name === body.name);
+  const duplicado = notes.find(person => person.name === body.name);
 
   if ( duplicado ){
     return response.status(400).json({
@@ -116,14 +136,14 @@ app.post('/api/persons', (request, response) => {
     number: body.number,    
   };
 
-  persons = persons.concat(person);
+  notes = notes.concat(person);
 
   response.json(person);
 });
 
-app.get('/api/persons/:id', (request, response) => {
+app.get('/api/notes/:id', (request, response) => {
   const id = Number(request.params.id);
-  const person = persons.find(person => person.id === id);
+  const person = notes.find(person => person.id === id);
   if (person) {
     response.json(person)
   } else {
@@ -133,16 +153,16 @@ app.get('/api/persons/:id', (request, response) => {
 
 app.get('/info', (request, response) => {
   const currentTime = new Date(Date.now()).toString()
-  const entriesCount = persons.length
+  const entriesCount = notes.length
   response.send(`
   <h1>Información de la agenda</h1>
   <p>Hora de la solicitud: ${currentTime}</p>
   <p>Cantidad de entradas en la agenda: ${entriesCount}</p>`)
 });
 
-app.delete('/api/persons/:id', (request, response) => {
+app.delete('/api/notes/:id', (request, response) => {
   const id = Number(request.params.id)
-  persons = persons.filter(person => person.id !== id)
+  notes = notes.filter(person => person.id !== id)
 
   response.status(204).end()
 });
